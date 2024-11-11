@@ -87,3 +87,44 @@ In this section, we’ll set up Kali Linux on Hyper-V by downloading and using a
    ```bash
    sudo apt update && sudo apt upgrade -y
 </div>
+
+## Installing Splunk on Ubuntu Server
+<div align="justify">
+Now that we have our Ubuntu Server up and running, it's time to install Splunk. In this section, we'll walk you through the process of installing the free 14-day trial version of Splunk on our Ubuntu server.
+
+### Step 1: Download Splunk
+1. **Log in to Splunk Website** – On your host machine, open a web browser and go to the [Splunk Downloads Page](https://www.splunk.com/en_us/download.html).
+2. **Choose the Version** – Select the *Splunk Enterprise* version and choose the *Linux (deb)* format.
+3. **Copy the Download Link** – After selecting the desired version, right-click on the *Download Now* button and copy the wget download link.
+
+Run the following command on your Ubuntu Server to download the package:
+```bash
+   [copy-the-link-here]
+```
+### Step 2: Install Splunk
+
+1.  **Install the Splunk Package** – Once the download is complete, install Splunk using the following command:
+
+    ```bash
+    sudo dpkg -i splunk-8.3.0-c7.x86_64.deb
+    ```
+
+2.  **Accept the License** – During the installation, you'll be prompted to accept the license agreement. Type `y` and press Enter to accept it.
+
+3.  **Start Splunk** – After the installation is complete, you can start Splunk with the following command:
+
+    ```bash
+    sudo /opt/splunk/bin/splunk start
+    ```
+
+    You will be prompted to set up the Splunk admin username and password during the first startup.
+
+### Step 3: Enable Auto Start on Boot
+
+To ensure Splunk starts automatically after the server is rebooted, run the following command:
+
+```bash
+sudo /opt/splunk/bin/splunk enable boot-start -user splunk
+```
+
+</div>
