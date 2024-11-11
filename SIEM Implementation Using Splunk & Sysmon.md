@@ -8,9 +8,9 @@ While these two Windows machines act as a domain controller and a domain user, w
 </div>
 
 # Diagram
-<div>
+<p align="center">
   <img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/SIEM.drawio.svg" />
-</div>
+</p>
 
 # Installing Ubuntu Server 24.04.01 LTS on Hyper-V
 <div align="justify">
@@ -82,7 +82,10 @@ From our setup diagram, we've chosen the static IP `10.27.221.250` for our Splun
    - **Note**: Replace `eth0` with the actual name of your network interface (you can find this by running `ip a`).
    - Replace `10.27.221.3` with your default gateway address.
    - Replace `10.27.221.250` with your static IP.
-
+   - Please ensure the indentation is correct in the `50-cloud-init.yaml` file.
+<p align="center">
+<img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/netplan.png" />
+<p></p>
 3. **Apply the Changes** – Once you've updated the configuration, save the file and apply the changes with:
 
     ```bash
@@ -166,32 +169,259 @@ Now that we have our Ubuntu Server up and running, it's time to install Splunk. 
 
 Run the following command on your Ubuntu Server to download the package:
 ```bash
-   [copy-the-link-here]
+   [copy-the-link-and-paste-it-in-your-Ubuntu-server]
 ```
 ### Step 2: Install Splunk
 
-1.  **Install the Splunk Package** – Once the download is complete, install Splunk using the following command:
+1.  **Install Splunk** – Use `dpkg` to install the Splunk `.deb` package:
 
     ```bash
     sudo dpkg -i splunk-8.3.0-c7.x86_64.deb
     ```
 
-2.  **Accept the License** – During the installation, you'll be prompted to accept the license agreement. Type `y` and press Enter to accept it.
-
-3.  **Start Splunk** – After the installation is complete, you can start Splunk with the following command:
+2. **Navigate to the Installation Directory** – Once installation is complete, go to the directory where Splunk is installed:
 
     ```bash
-    sudo /opt/splunk/bin/splunk start
+    cd /opt/splunk
+    ls -la
     ```
 
-    You will be prompted to set up the Splunk admin username and password during the first startup.
+    Here, you can see that all files belong to the `splunk` user and group.
 
-### Step 3: Enable Auto Start on Boot
+3. **Switch to Splunk User** – Change to the `splunk` user to start Splunk under this user:
 
-To ensure Splunk starts automatically after the server is rebooted, run the following command:
+    ```bash
+    sudo -u splunk bash
+    ```
+
+4. **Start Splunk** – Navigate to the Splunk `bin` directory and start Splunk:
+
+    ```bash
+    cd /opt/splunk/bin
+    ./splunk start
+    ```
+
+5. **Accept the License Agreement and Set Up Admin Credentials** – You’ll be prompted to accept the license agreement. 
+
+   - Type `Q` to scroll to the end of the agreement.
+   - Type `y` and press Enter to accept.
+   - After accepting the license, you will be prompted to create an admin `username` and `password`. Follow the prompts to set these credentials, which you will use to log into the Splunk web interface.
+
+
+6. **Exit Splunk User** – After starting Splunk, exit the `splunk` user shell:
+
+    ```bash
+    exit
+    ```
+
+7. **Enable Splunk to Start on Boot** – Go back to the `bin` directory and enable Splunk to start automatically at boot, using the `splunk` user:
+
+    ```bash
+    cd /opt/splunk/bin
+    sudo ./splunk enable boot-start -user splunk
+    ```
+
+This will ensure that Splunk starts automatically each time the server reboots, running under the `splunk` user.
+<p align="center">
+<img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/status.PNG" width="80%"/>
+</p>
+</div>
+
+# Installing Sysmon with Olaf’s Configuration File on Windows
+
+We’ll set up **Sysmon** (System Monitor), which captures detailed information about events like process creation, network connections, and file changes. We’ll use Olaf’s recommended configuration file for this. 
+
+#### Step 1: Download Sysmon and Olaf’s Configuration File
+
+1. **Download Sysmon** – Go to Microsoft’s [Sysinternals page](https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon) and download the latest version of Sysmon.
+2. **Download Olaf’s Sysmon Configuration** – Visit [Olaf’s GitHub page](https://github.com/olafhartong/sysmon-modular) to get the configuration file:
+   - Download the `sysmon-config.xml` file by saving its raw content as `sysmon-config.xml`.
+
+#### Step 2: Install Sysmon with the Configuration File
+
+1. To keep it simple, place `Sysmon.exe` and `sysmon-config.xml` files together.
+2. Open **Command Prompt** with Administrator privileges.
+3. Navigate to the Sysmon directory:
+
+    ```bash
+    cd C:\Users\User_name\Downloads\Sysmon
+    ```
+
+3. Run Sysmon with Olaf’s configuration file:
+
+    ```bash
+    .\Sysmon64.exe -i sysmon-config.xml
+    ```
+
+   - Accept the Sysmon license agreement.
+   - The `-i` flag specifies the configuration file to use.
+
+4. You’ll see output confirming that Sysmon has been successfully installed with the custom configuration.
+
+#### Step 3: Verify Sysmon is Running
+
+To make sure Sysmon is running:
+
+1. Open **Event Viewer** by typing "Event Viewer" in the Windows search bar.
+2. Navigate to **Applications and Services Logs > Microsoft > Windows > Sysmon**.
+3. You should see events under the **Operational** log, indicating that Sysmon is actively recording events.
+
+Sysmon is designed to automatically start at boot, so no additional configuration is required for this.
+
+#### Step 4: Repeat for Additional Windows Machines
+
+Follow these same steps on any additional Windows machines you’re monitoring. Each machine will now be configured to capture detailed event logs, ready to be forwarded to your Splunk server for analysis.
+
+# Installing Splunk Universal Forwarder on Windows
+
+To monitor Windows logs with Splunk, we need to install the **Splunk Universal Forwarder** on each Windows machine. This lightweight forwarder sends logs to our main Splunk instance for centralized analysis. Let's go through the process step-by-step, and be sure to follow these steps for each Windows machine in your environment.
+
+### Step 1: Download the Splunk Universal Forwarder
+
+1. On the Windows machine, open a web browser and go to the [Splunk Universal Forwarder download page](https://www.splunk.com/en_us/download/universal-forwarder.html).
+2. Download the installer for Windows (usually a `.msi` file).
+
+### Step 2: Run the Installer
+
+1. Locate the downloaded `.msi` file and double-click it to start the installation.
+2. Follow the installer prompts. Here are a few key settings:
+   - **Installation Directory**: Choose the default or specify a custom path.
+   - **Select Components**: Ensure that "Forwarder" is selected.
+   - **Set Installation Type**: Choose "Local System".
+
+### Step 3: Configure the Forwarder to Send Logs to the Splunk Server
+
+1. When prompted, enter the **Splunk server’s IP address and receiving port**. This is where your Splunk server will receive data from the forwarder:
+   - **Server IP**: `10.27.221.250` (replace it with your Splunk server IP)
+   - **Port**: `9997` (make sure this matches the receiving port on your Splunk server)
+
+2. **Set the Admin Credentials** – During setup, you’ll also be asked to set up an admin `username` and `password` for the forwarder. Create a username and password that you’ll remember, as these credentials may be required for managing the forwarder later.
+
+Finish the installation and wait for it to complete. You’ll see a confirmation screen once it’s installed and ready.
+
+### Step 4: Configuring the Splunk Universal Forwarder with `inputs.conf` to Send Logs to Splunk
+
+Now that our Splunk Universal Forwarder (UF) is up and running, we need to specify which events we want to forward to our Splunk server. This is done by configuring an `inputs.conf` file, where we’ll outline the specific logs to capture, including **Application, Security, System**, and **Sysmon** events. 
+
+- The default `inputs.conf` file is found in: `C:\Program Files\SplunkUniversalForwarder\etc\system\default\inputs.conf`.
+- But **never** edit files in the `default` directory, as these are overwritten with updates. Instead, we’ll create a new `inputs.conf` file in the `local` directory.
+- **Open Notepad as Administrator** (right-click Notepad, select **Run as Administrator**, then **Yes** when prompted).
+- Copy the following configuration and paste it into Notepad:
+
+    ```plaintext
+    [WinEventLog://Application]
+    index = endpoint
+    disabled = false
+
+    [WinEventLog://Security]
+    index = endpoint
+    disabled = false
+
+    [WinEventLog://System]
+    index = endpoint
+    disabled = false
+
+    [WinEventLog://Microsoft-Windows-Sysmon/Operational]
+    index = endpoint
+    disabled = false
+    renderXml = true
+    source = XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    ```
+
+- **Explanation**: This configuration tells the Splunk UF to capture logs from the Application, Security, and System events, as well as detailed Sysmon logs. All logs are directed to an **index named `endpoint`** on our Splunk server.
+-  Save this file as `inputs.conf` in:
+    ```
+    C:\Program Files\SplunkUniversalForwarder\etc\system\local
+    ```
+- For the new configuration to take effect, you must restart the Splunk UF service:
+
+1. Open **Services** (type “Services” in the Windows search bar and run as Administrator).
+2. Scroll down and find **SplunkForwarder Service**.
+3. **Double-click** to open it, go to the **Log On** tab.
+   - Ensure it’s set to **Local System Account** rather than **NT Service** to avoid permissions issues when collecting logs.
+4. **Click Apply** and then **OK**.
+5. Stop and restart the SplunkForwarder Service to apply the `inputs.conf` updates.
+
+Once restarted, the Splunk UF will start forwarding the selected logs to your Splunk server under the `endpoint` index. Just remember, if your Splunk server does not have an `endpoint` index, these logs won’t be ingested! You’ll need to create an `endpoint` index on the Splunk server to receive these events. Here’s how to set it up:
+
+1. Open a browser and navigate to your Splunk instance (`http://<your-splunk-server-ip>:8000`). Log in with your Splunk credentials.
+   <p align="center"><img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/splunk.PNG" width="70%"/> </p>
+
+2. In the top-right corner, click on **Settings**. Under **Data**, select **Indexes**. This will take you to the Index Management page.
+
+3. **Create a New Index**  
+   - Click **New Index** at the top-right of the page.
+   - In the **Index Name** field, type `endpoint`. This name must match exactly with what was configured in the `inputs.conf` on the Universal Forwarder.
+   - **Choose Index Type**: Leave it as **Events**.
+   
+4. **Save the Index**  
+   After entering the required information, click **Save**. The `endpoint` index is now created and ready to receive data.
+
+5. From the Splunk Home screen, select **Search & Reporting**.
+
+6. In the search bar, type the following command to verify that data is being ingested into your new index:
+   ```plaintext
+   index=endpoint
+   ```
+<p align="center">
+  <img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/index.PNG" width="70%" />
+</p>
+
+
+Follow these same steps to install the Splunk Universal Forwarder on any other Windows machines in your environment. Each forwarder will report to your Splunk server, consolidating your logs and making monitoring easier.
+
+# Brute Force Attack Using Crowbar in Kali Linux with Rockyou Wordlist
+
+In this section, we’ll dive into performing a brute-force attack using **Crowbar**, one of the popular tools in **Kali Linux**. We'll be leveraging the famous **Rockyou wordlist** to guess passwords, but for simplicity, we’ll limit ourselves to the first 20 entries of this list and intentionally add our target domain user's password so we can quickly verify the success of the attack.
+
+**Crowbar** is an easy-to-use tool designed to perform brute-force attacks against various services such as SSH, RDP, and HTTP. Today, we'll target RDP, but before proceeding, we need to ensure that the RDP service is enabled on the target machine.
+
+### Step-by-Step Guide for Brute-Force Attack with Crowbar
+
+#### Step 1: Install Crowbar (If Not Already Installed)
+Crowbar is usually pre-installed in Kali Linux, but if you find that it's not installed, you can easily get it using the following commands:
 
 ```bash
-sudo /opt/splunk/bin/splunk enable boot-start -user splunk
+sudo apt update
+sudo apt install crowbar
 ```
 
-</div>
+#### Step 2: Prepare the Wordlist
+
+Kali Linux includes the Rockyou wordlist by default, located at `/usr/share/wordlists/rockyou.txt.gz`. For our demonstration, we’ll extract just the first 20 passwords and add our domain user's password to the list. Here's how to do it:
+
+1. First, extract the first 20 passwords from the Rockyou wordlist:
+   ```bash
+   head -n 20 /usr/share/wordlists/rockyou.txt > password.txt
+   ```
+2. Next, add our domain user's password to the wordlist to ensure we get a successful result:
+
+   ```bash
+   echo "yourpassword" >> password.txt
+   ```
+Note: Replace `yourpassword` with the actual password for the domain user you're targeting.
+
+3. Launch the Brute-Force Attack
+
+Now that our wordlist is ready, it’s time to launch the brute-force attack using **Crowbar**. In this example, we’ll target RDP, but Crowbar also works with other services like SSH and HTTP. To start the attack, run the following command:
+
+```bash
+crowbar -b rdp -u <target-user> -C password.txt -s <target_ip/32>
+```
+- `-b rdp`: Specifies that we want to brute-force a RDP service.
+- `-u <target-user>`: Specifies the username of the target (the domain user we are attacking).
+- `-C password.txt`: Points to the wordlist we’ve created.
+- `-s <target_ip/32>`: Replace `<target_ip>` with the IP address of the target machine. `/32` means we are only target one machine.
+
+<p align="center">
+<img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/bruteforce.PNG" width="70%"/>
+</p>
+
+Now, we can head over to Splunk and search for logs of the brute-force attack.
+
+<p>
+  <img src="" />
+</p>
+
+# Invoke Atomic Red Team To Generate Logs
+
