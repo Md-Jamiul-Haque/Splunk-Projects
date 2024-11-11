@@ -49,6 +49,47 @@ To kick off our SIEM setup, we’ll start by creating a virtual Ubuntu Server 24
 2. **Update Ubuntu** – Run the following commands to bring everything up to date:
    ```bash
    sudo apt-get update && sudo apt-get upgrade -y
+   ```
+### Step 8: Set a Static IP for the Splunk Server
+
+From our setup diagram, we've chosen the static IP `10.27.221.250` for our Splunk server. To configure this IP, we'll need to set up a static IP on our Splunk server.
+
+1. **Edit the Network Configuration File** – Open the network configuration file with the following command:
+
+    ```bash
+    sudo nano /etc/netplan/50-cloud-init.yaml
+    ```
+
+2. **Update the Configuration** – Modify the configuration file to reflect the following settings:
+
+    ```yaml
+    network:
+      version: 2
+      rendered: networkd
+      ethernets:
+        eth0:      # Replace with your network interface name
+          dhcp4: false
+          addresses:
+            - 10.27.221.250/24  # Replace with your chosen Static Ip
+          routes:
+            - to: default
+              via: 10.27.221.3  # Replace with your default gateway
+          nameservers:
+            addresses:
+              - 8.8.8.8
+    ```
+
+   - **Note**: Replace `eth0` with the actual name of your network interface (you can find this by running `ip a`).
+   - Replace `10.27.221.3` with your default gateway address.
+   - Replace `10.27.221.250` with your static IP.
+
+3. **Apply the Changes** – Once you've updated the configuration, save the file and apply the changes with:
+
+    ```bash
+    sudo netplan apply
+    ```
+
+This configuration assigns a static IP to the Splunk server, ensuring it matches our lab setup requirements. You can confirm this by running `ip a`.
 
 </div>
 
@@ -88,7 +129,7 @@ In this section, we’ll set up Kali Linux on Hyper-V by downloading and using a
    sudo apt update && sudo apt upgrade -y
 </div>
 
-## Installing Splunk on Ubuntu Server
+# Installing Splunk on Ubuntu Server
 <div align="justify">
 Now that we have our Ubuntu Server up and running, it's time to install Splunk. In this section, we'll walk you through the process of installing the free 14-day trial version of Splunk on our Ubuntu server.
 
