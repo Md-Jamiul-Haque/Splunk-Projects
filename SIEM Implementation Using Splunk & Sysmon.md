@@ -127,6 +127,32 @@ In this section, we’ll set up Kali Linux on Hyper-V by downloading and using a
 1. **Update Kali** – It’s a good idea to make sure your Kali Linux system is up to date. Open a terminal and run the following commands:
    ```bash
    sudo apt update && sudo apt upgrade -y
+   ```
+### Step 8: Set a Static IP for Kali Linux Using the GUI
+
+To configure a static IP for Kali Linux in our lab setup, follow these steps:
+
+1. **Open Network Settings** – Go to the top-right corner of the Kali Linux desktop, click on the **Network** icon, and select **Settings**.
+
+2. **Select the Network Interface** – In the **Settings** window, choose the network interface you want to configure (usually `Wired 1`).
+
+3. **Set IP Address Method to Manual**:
+   - In the interface settings, find the **IPv4** tab.
+   - Change the **IPv4 Method** to **Manual**.
+
+4. **Configure the Static IP Details**:
+   - Under **Addresses**, add the following details:
+     - **Address**: `10.27.221.242` (or any other IP within the same subnet, ensuring no IP conflicts).
+     - **Netmask**: `255.255.255.0` (or `/24`).
+     - **Gateway**: `10.27.221.3`  # replace with your network's default gateway.
+   - In **DNS Servers**, add `8.8.8.8`. # you can use your preferred DNS server.
+
+5. **Save and Apply**:
+   - Click **Apply** to save the configuration.
+   - Restart the network connection if needed, or simply disconnect and reconnect.
+
+After completing these steps, your Kali Linux machine will have a static IP set in the network, matching our lab environment configuration.
+
 </div>
 
 # Installing Splunk on Ubuntu Server
