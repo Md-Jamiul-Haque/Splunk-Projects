@@ -9,7 +9,7 @@ While these two Windows machines act as a domain controller and a domain user, w
 
 # Diagram
 <p align="center">
-  <img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/SIEM.drawio.svg" />
+  <img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/SIEM.png" />
 </p>
 
 # Installing Ubuntu Server 24.04.01 LTS on Hyper-V
