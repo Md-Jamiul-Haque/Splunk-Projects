@@ -419,9 +419,9 @@ crowbar -b rdp -u <target-user> -C password.txt -s <target_ip/32>
 
 Now, we can head over to Splunk and search for logs of the brute-force attack. By looking at the timestamps we can tell several login attempts were made within a short period of time.
 
-<p align="center">
-  <img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/brute-force-log.png" width="70%"/>
-</p>
+------
+------
+------
 
 # Invoke Atomic Red Team To Generate Logs
 
