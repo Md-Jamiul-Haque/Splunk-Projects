@@ -87,11 +87,11 @@ From our setup diagram, we've chosen the static IP `10.27.221.250` for our Splun
 <img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/netplan.png" />
 <p></p>
 3. **Apply the Changes** – Once you've updated the configuration, save the file and apply the changes with:
-
-    ```bash
-    sudo netplan apply
-    ```
-
+    
+  ```bash
+      sudo netplan apply
+  ```
+    
 This configuration assigns a static IP to the Splunk server, ensuring it matches our lab setup requirements. You can confirm this by running `ip a`.
 
 </div>
@@ -417,11 +417,81 @@ crowbar -b rdp -u <target-user> -C password.txt -s <target_ip/32>
 <img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/bruteforce.PNG" width="70%"/>
 </p>
 
-Now, we can head over to Splunk and search for logs of the brute-force attack.
+Now, we can head over to Splunk and search for logs of the brute-force attack. By looking at the timestamps we can tell several login attempts were made within a short period of time.
 
-<p>
-  <img src="" />
+<p align="center">
+  <img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/brute-force-log.png" width="70%"/>
 </p>
 
 # Invoke Atomic Red Team To Generate Logs
+
+In this section, we'll explore how to use **Atomic Red Team** to simulate an attack and generate corresponding logs in **Splunk**. Let’s dive into the installation and execution process step-by-step.
+
+#### Step 1: Open PowerShell as Administrator
+
+Since we're operating within an Active Directory (AD) environment, we'll use administrator credentials to run PowerShell with administrative privileges.
+
+#### Step 2: Set Execution Policy
+
+1. To allow the execution of scripts necessary for installing Atomic Red Team, we need to adjust the PowerShell execution policy.
+   ```powershell
+   Set-ExecutionPolicy Bypass CurrentUser
+   ```
+2. * When prompted, type `Y` and press `Enter` to confirm.
+
+#### Step 3: Add an Exclusion for the C:\\ Drive
+
+Before installing Atomic Red Team, it's essential to prevent Microsoft Defender from flagging it as malicious by adding an exclusion for the entire `C:\` drive.
+
+1. * Search for **Windows Security** and goto  **Virus & threat protection**.
+2. * Click on **Manage settings** under the **Virus & threat protection settings** section.
+3. * Scroll down to **Exclusions** and click **Add or remove exclusions**.
+   * Click **Add an exclusion** and select **Folder**.
+   * Browse to and select `C:\` to exclude the entire drive.
+   
+   > **Note:** Adding a full drive exclusion can pose security risks. Ensure this is done in a controlled lab environment and not on production systems.
+
+#### Step 4: Install Atomic Red Team Framework
+
+1. **Run the Installation Command:**
+   ```powershell
+   IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing);
+   Install-AtomicRedTeam -getAtomics
+   ```
+2. When prompted, type `Y` and press `Enter` to install the necessary dependencies.
+
+### Step 5: Navigate to Atomic Red Team Directory
+Go to the directory `C:\AtomicRedTeam\atomics`. Here, you’ll find technique IDs that map back to the MITRE ATT&CK framework.
+
+Visit the MITRE ATT&CK website to select the technique you want to simulate. For this example, we'll create a local account under the Persistence tactic.
+* **Navigate to MITRE ATT&CK:**
+  * Go to **Persistence** > **Create Account**.
+
+* **Select Technique ID:**
+  * Choose **Local Account** with Technique ID `T1136.001`.
+  * Ensure this ID exists in your `C:\AtomicRedTeam\atomics` directory.
+With everything set up, it’s time to invoke the atomic test to generate logs.
+
+1. **Run the Atomic Test:**
+
+   ```powershell
+   Invoke-AtomicTest T1136.001
+   ```
+2. This command will create telemetry for local account creation. Take a look at the username,it could be `NewLocalUser`
+3. Now, head over to your Splunk instance to search the logs.
+4. In the Search & Reporting app, enter the following search query:
+   ```plaintext
+   index=endpoint NewLocalUser
+   ```
+5. You should see an entry for `NewLocalUser`, indicating that the local account creation was successfully logged.(Note: you may have to wait a little bit to see the logs)
+
+<p align="center">
+<img src="https://github.com/Md-Jamiul-Haque/Splunk-Projects/blob/main/mitre-attack.png" width="80%"/>
+</p>
+
+# Conclusion
+<div align="justify">
+Setting up a SIEM lab environment using Splunk, Sysmon, and Atomic Red Team provides a powerful way to monitor, detect, and analyze potential security incidents in real-time. By configuring Splunk Universal Forwarder to capture critical logs from Windows hosts and setting up a static IP for Splunk on Ubuntu, we created a strong foundation for centralized log management. The simulated brute-force attack using Kali Linux and the local account creation with Atomic Red Team allowed us to test our configurations and observe how Splunk detects these events, making it an effective training tool.
+Whether you’re exploring cybersecurity for the first time or fine-tuning your skills, this setup offers valuable hands-on experience with log analysis and detection techniques. With this foundation in place, you can now dive deeper into creating custom detection rules, analyzing trends, and enhancing your Splunk queries to broaden your expertise in threat monitoring and response.
+</div>
 
